@@ -66,3 +66,129 @@ test/: Testes automatizados para garantir o funcionamento do contrato.
 ## Contribuições
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests para melhorias ou correções.
+
+## Testando a Crypto Melo
+
+### 1. Configuração do Ambiente de Teste
+
+Certifique-se de ter o Truffle e o Ganache instalados.
+
+``bash
+npm install -g truffle
+npm install -g ganache-cli
+``
+
+Inicie o Ganache para simular uma rede Ethereum local:
+
+``bash
+ganache-cli
+``
+
+### 2. Configuração do Projeto Truffle
+
+Dentro do diretório do seu projeto, inicialize um novo projeto Truffle:
+
+``bash
+truffle init
+``
+
+Instale as dependências necessárias:
+
+``bash
+npm install @openzeppelin/test-helpers chai
+``
+
+### 3. Criação do Arquivo de Migração
+
+No diretório migrations, crie um novo arquivo de migração, por exemplo, 2_deploy_contracts.js:
+
+``bash
+const CryptoMelo = artifacts.require("CryptoMelo");
+
+module.exports = function (deployer) {
+  deployer.deploy(CryptoMelo);
+};
+``
+
+### 4. Escrever Testes
+
+Crie um arquivo de teste em test/CryptoMelo.test.js e adicione os seguintes testes:
+
+``bash
+const CryptoMelo = artifacts.require("CryptoMelo");
+const { expect } = require('chai');
+const { BN, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
+
+contract("CryptoMelo", (accounts) => {
+  const [deployer, recipient, anotherAccount] = accounts;
+
+  beforeEach(async () => {
+    this.token = await CryptoMelo.new({ from: deployer });
+  });
+
+  it("deve retornar o total supply correto", async () => {
+    const totalSupply = await this.token.totalSupply();
+    expect(totalSupply).to.be.bignumber.equal(new BN(web3.utils.toWei('10', 'ether')));
+  });
+
+  it("deve retornar o saldo correto do deployer", async () => {
+    const balance = await this.token.balanceOf(deployer);
+    expect(balance).to.be.bignumber.equal(new BN(web3.utils.toWei('10', 'ether')));
+  });
+
+  it("deve transferir tokens corretamente", async () => {
+    const amount = new BN(web3.utils.toWei('1', 'ether'));
+    await this.token.transfer(recipient, amount, { from: deployer });
+
+    const deployerBalance = await this.token.balanceOf(deployer);
+    const recipientBalance = await this.token.balanceOf(recipient);
+
+    expect(deployerBalance).to.be.bignumber.equal(new BN(web3.utils.toWei('9', 'ether')));
+    expect(recipientBalance).to.be.bignumber.equal(amount);
+  });
+
+  it("deve aprovar tokens corretamente", async () => {
+    const amount = new BN(web3.utils.toWei('1', 'ether'));
+    await this.token.approve(anotherAccount, amount, { from: deployer });
+
+    const allowance = await this.token.allowance(deployer, anotherAccount);
+    expect(allowance).to.be.bignumber.equal(amount);
+  });
+
+  it("deve transferir tokens a partir de uma conta aprovada corretamente", async () => {
+    const amount = new BN(web3.utils.toWei('1', 'ether'));
+
+    await this.token.approve(anotherAccount, amount, { from: deployer });
+    await this.token.transferFrom(deployer, recipient, amount, { from: anotherAccount });
+
+    const deployerBalance = await this.token.balanceOf(deployer);
+    const recipientBalance = await this.token.balanceOf(recipient);
+    const allowance = await this.token.allowance(deployer, anotherAccount);
+
+    expect(deployerBalance).to.be.bignumber.equal(new BN(web3.utils.toWei('9', 'ether')));
+    expect(recipientBalance).to.be.bignumber.equal(amount);
+    expect(allowance).to.be.bignumber.equal(new BN('0'));
+  });
+
+  it("deve reverter se saldo insuficiente", async () => {
+    const amount = new BN(web3.utils.toWei('11', 'ether'));
+    await expectRevert(this.token.transfer(recipient, amount, { from: deployer }), "revert");
+  });
+
+  it("deve reverter se aprovação insuficiente", async () => {
+    const amount = new BN(web3.utils.toWei('1', 'ether'));
+    await this.token.approve(anotherAccount, amount, { from: deployer });
+
+    const transferAmount = new BN(web3.utils.toWei('2', 'ether'));
+    await expectRevert(this.token.transferFrom(deployer, recipient, transferAmount, { from: anotherAccount }), "revert");
+  });
+});
+``
+
+### 5. Executar os Testes
+
+Para executar os testes, use o comando:
+
+``bash
+truffle test
+``
