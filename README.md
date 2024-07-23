@@ -30,8 +30,12 @@ d. Ganhar experiência prática valiosa em blockchain e desenvolvimento de cript
 
 1. Clone o repositório:
 
-``git clone https://github.com/caio-videmelo/DIO--Primeira-Criptomoeda-Rede-Ethereum``
-`` cd CryptoMelo``
+``
+git clone https://github.com/caio-videmelo/DIO--Primeira-Criptomoeda-Rede-Ethereum
+``
+`` 
+cd CryptoMelo
+``
 
 2. Instale as dependências:
 
@@ -74,14 +78,18 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull re
 Certifique-se de ter o Truffle e o Ganache instalados.
 
 ``bash
+
 npm install -g truffle
 npm install -g ganache-cli
+
 ``
 
 Inicie o Ganache para simular uma rede Ethereum local:
 
 ``bash
+
 ganache-cli
+
 ``
 
 ### 2. Configuração do Projeto Truffle
@@ -89,13 +97,17 @@ ganache-cli
 Dentro do diretório do seu projeto, inicialize um novo projeto Truffle:
 
 ``bash
+
 truffle init
+
 ``
 
 Instale as dependências necessárias:
 
 ``bash
+
 npm install @openzeppelin/test-helpers chai
+
 ``
 
 ### 3. Criação do Arquivo de Migração
@@ -103,11 +115,13 @@ npm install @openzeppelin/test-helpers chai
 No diretório migrations, crie um novo arquivo de migração, por exemplo, 2_deploy_contracts.js:
 
 ``bash
+
 const CryptoMelo = artifacts.require("CryptoMelo");
 
 module.exports = function (deployer) {
   deployer.deploy(CryptoMelo);
 };
+
 ``
 
 ### 4. Escrever Testes
@@ -115,6 +129,7 @@ module.exports = function (deployer) {
 Crie um arquivo de teste em test/CryptoMelo.test.js e adicione os seguintes testes:
 
 ``bash
+
 const CryptoMelo = artifacts.require("CryptoMelo");
 const { expect } = require('chai');
 const { BN, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
@@ -190,5 +205,7 @@ contract("CryptoMelo", (accounts) => {
 Para executar os testes, use o comando:
 
 ``bash
+
 truffle test
+
 ``
